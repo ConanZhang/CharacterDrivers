@@ -27,6 +27,8 @@
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/mutex.h>
+#include <linux/wait.h>
+#include <linux/sched.h>
 
 #include <asm/uaccess.h>
 

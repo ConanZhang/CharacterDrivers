@@ -94,7 +94,8 @@ sleepy_read(struct file *filp, char __user *buf, size_t count,
     return -EINTR;
 	
   /* YOUR CODE HERE */
-
+  dev->flag = 1;
+  wake_up_interruptible(&dev->wait_queue);
   /* END YOUR CODE */
 	
   mutex_unlock(&dev->sleepy_mutex);
@@ -107,13 +108,47 @@ sleepy_write(struct file *filp, const char __user *buf, size_t count,
 {
   struct sleepy_dev *dev = (struct sleepy_dev *)filp->private_data;
   ssize_t retval = 0;
+  int sleep_time;
+  int time_left;
 	
   if (mutex_lock_killable(&dev->sleepy_mutex))
     return -EINTR;
 	
   /* YOUR CODE HERE */
+  //byte check
   if(count != 4)
+  {
+    mutex_unlock(&dev->sleepy_mutex);
     return -EINTR;
+  }
+
+  //get value
+  if(copy_from_user(dev->data, buf, count) != 0)
+  {
+    mutex_unlock(&dev->sleepy_mutex);
+    return -EFAULT;
+  }
+  sleep_time = *(int*)dev->data;
+
+  //negative check
+  if(sleep_time < 0)
+  {
+    mutex_unlock(&dev->sleepy_mutex);
+    return 0;
+  }
+
+  //sleep
+  mutex_unlock(&dev->sleepy_mutex);
+  time_left = wait_event_interruptible_timeout(dev->wait_queue, dev->flag != 0, sleep_time * HZ);
+  if (mutex_lock_killable(&dev->sleepy_mutex))
+    return -EINTR;
+  dev->flag = 0;
+  
+  //time_left check
+  if(time_left != 0)
+  {
+    retval = time_left/HZ;
+  }
   /* END YOUR CODE */
 	
   mutex_unlock(&dev->sleepy_mutex);

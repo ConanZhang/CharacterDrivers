@@ -1,4 +1,3 @@
-CONFIG_MODULE_SIG=n
 obj-m := sleepy.o shady.o
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)

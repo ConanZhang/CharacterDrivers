@@ -176,6 +176,9 @@ sleepy_construct_device(struct sleepy_dev *dev, int minor,
     cdev_del(&dev->cdev);
     return err;
   }
+
+  init_waitqueue_head(&dev->wait_queue);
+
   return 0;
 }
 

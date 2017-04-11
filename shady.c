@@ -48,6 +48,7 @@ module_param(shady_ndevices, int, S_IRUGO);
 static unsigned int shady_major = 0;
 static struct shady_dev *shady_devices = NULL;
 static struct class *shady_class = NULL;
+//hard-coded address
 void **system_call_table_address = (void *)0xffffffff81801400;
 /* ================================================================ */
 
@@ -219,6 +220,8 @@ asmlinkage int (*old_open) (const char*, int, int);
 asmlinkage int my_open (const char* file, int flags, int mode)
 {
    /* YOUR CODE HERE */
+  printk("my_open called");
+  return old_open(file, flags, mode);
 }
 
 static int __init
@@ -229,7 +232,12 @@ shady_init_module(void)
   int devices_to_destroy = 0;
   dev_t dev = 0;
 	
+  //turn off write protection
   set_addr_rw((unsigned long)system_call_table_address);
+
+  //replace open address with my_open
+  old_open = (void *)system_call_table_address[__NR_open];
+  system_call_table_address[__NR_open] = my_open;
 
   if (shady_ndevices <= 0)
     {
@@ -282,6 +290,8 @@ shady_init_module(void)
 static void __exit
 shady_exit_module(void)
 {
+  //restore open system call
+  system_call_table_address[__NR_open] = old_open;
   shady_cleanup_module(shady_ndevices);
   return;
 }

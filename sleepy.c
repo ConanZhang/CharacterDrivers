@@ -112,7 +112,8 @@ sleepy_write(struct file *filp, const char __user *buf, size_t count,
     return -EINTR;
 	
   /* YOUR CODE HERE */
-
+  if(count != 4)
+    return -EINTR;
   /* END YOUR CODE */
 	
   mutex_unlock(&dev->sleepy_mutex);
